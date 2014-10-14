@@ -1,0 +1,22 @@
+# Dependencies
+markdown:         redcarpet
+highlighter:      pygments
+
+# Permalinks
+permalink:        pretty
+relative_permalinks: true
+
+# Setup
+title:            sshao
+tagline:          
+paginate:         10
+baseurl:          http://sshao.github.io/
+author:
+  name:           sshao
+  email:          ssh.sshao@gmail.com
+  github:         https://github.com/sshao
+
+# Custom vars
+version:          1.0.0
+github:
+  repo:           https://github.com/poole/poole
