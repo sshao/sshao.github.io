@@ -39,7 +39,7 @@ sleeping... try lsof -p 59100
 {% endhighlight %}
 {% highlight console %}
 $ lsof -p 59100 | grep 1u
-ruby    59100 sophiashao    1u   CHR               16,2     0t866       773 /dev/ttys002
+ruby  59100 sshao  1u  CHR 16,2  0t866 773 /dev/ttys002
 {% endhighlight %}
 {% highlight console %}
 $ (continued) ruby -v close_and_redirect.rb
@@ -48,7 +48,8 @@ sleeping... try lsof -p 59100
 {% endhighlight %}
 {% highlight console %}
 $ lsof -p 59100 | grep 1u
-ruby    59100 sophiashao    1u   CHR               16,2     0t917       773 /dev/ttys002
+ruby  59100 sshao  1u  CHR 16,2  0t917 773 /dev/ttys002
+# stdout is still open!
 {% endhighlight %}
 {% highlight console %}
 $ (continued) ruby -v close_and_redirect.rb
@@ -58,7 +59,7 @@ STDOUT says hello
 {% endhighlight %}
 {% highlight console %}
 $ lsof -p 59100 | grep 1u
-ruby    59100 sophiashao    1u   CHR               16,2     0t969       773 /dev/ttys002
+ruby  59100 sshao  1u  CHR 16,2  0t969 773 /dev/ttys002
 {% endhighlight %}
 
 stdout (fd 1) is never actually closed -- even when ruby says it is.
@@ -72,7 +73,7 @@ sleeping... try lsof -p 30091
 {% endhighlight %}
 {% highlight console %}
 $ lsof -p 30091 | grep 1u
-rbx     30091 sophiashao    1u   CHR   16,2    0t5050       773 /dev/ttys002
+rbx 30091 sshao  1u  CHR 16,2  0t5050  773 /dev/ttys002
 {% endhighlight %}
 {% highlight console %}
 $ (continued) ruby -v close_and_redirect.rb
@@ -81,6 +82,7 @@ sleeping... try lsof -p 30091
 {% endhighlight %}
 {% highlight console %}
 $ lsof -p 30091 | grep 1u
+# stdout is closed
 {% endhighlight %}
 {% highlight console %}
 $ (continued) ruby -v close_and_redirect.rb
@@ -108,7 +110,33 @@ closed status to the exec'd process, which fails in `Rubinius::Loader` due
 to the closed stream.
 
 ## MRI 1.8
-...closes underlying stdout, then claims `STDOUT.closed? == false` in the
-exec'd process, but still has underlying stdout closed. I'd have output
-but I'm installing gcc to install MRI 1.8 and that's taking forever. I'll
-be back.
+{% highlight console %}
+$ ruby -v close_and_redirect.rb
+ruby 1.8.7 (2012-10-12 patchlevel 371) [i686-darwin13.4.0]
+STDOUT closed?: false
+sleeping... try lsof -p 59166
+{% endhighlight %}
+{% highlight console %}
+$ lsof -p 59166 | grep 1u
+ruby  59166 sshao  1u  CHR 16,1 0t3231295  771 /dev/ttys001
+{% endhighlight %}
+{% highlight console %}
+STDOUT closed?: true
+sleeping... try lsof -p 59166
+{% endhighlight %}
+{% highlight console %}
+$ lsof -p 59166 | grep 1u
+# stdout is closed!
+{% endhighlight %}
+{% highlight console %}
+STDOUT closed?: false
+sleeping... try lsof -p 59166
+{% endhighlight %}
+{% highlight console %}
+$ lsof -p 59166 | grep 1u
+# stdout is still closed!
+{% endhighlight %}
+
+Although `lsof` shows us that stdout is closed in the last process
+(after the exec), ruby tells us that `STDOUT.closed?` is false! Furthermore,
+the `puts "STDOUT says hello"` is never output.
